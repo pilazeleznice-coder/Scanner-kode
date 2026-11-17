@@ -1,0 +1,18 @@
+{
+  "name": "Scanner kód – Pila Železnice",
+  "short_name": "Scanner kód",
+  "id": "/Scanner-kode/",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f6f2",
+  "theme_color": "#104c29",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
