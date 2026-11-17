@@ -20,7 +20,7 @@ async function authFetch(path,options={}){const headers={'apikey':KEY,'Content-T
 async function refresh(){if(!session?.refresh_token)throw Error('Přihlas se znovu');const r=await fetch(BASE+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:session.refresh_token})});if(!r.ok){session=null;localStorage.removeItem('scanner-session');show('auth');throw Error('Relace vypršela, přihlas se znovu')}session=await r.json();localStorage.setItem('scanner-session',JSON.stringify(session))}
 async function authenticate(type){$('authMessage').textContent='Připojuji…';try{const email=$('email').value.trim(),password=$('password').value;if(!email||!password)throw Error('Vyplň e-mail a heslo');const data=await authFetch(type==='signup'?'/auth/v1/signup':'/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});if(!data.access_token){$('authMessage').textContent='Účet vytvořen. Zkontroluj potvrzovací e-mail a pak se přihlas.';return}session=data;localStorage.setItem('scanner-session',JSON.stringify(session));$('authMessage').textContent='';$('account').textContent='Přihlášen: '+email;await load();show('home')}catch(e){$('authMessage').textContent=e.message}}
 $('signin').onclick=()=>authenticate('signin');$('signup').onclick=()=>authenticate('signup');$('signout').onclick=async()=>{try{await authFetch('/auth/v1/logout',{method:'POST'})}catch(e){}session=null;records=[];localStorage.removeItem('scanner-session');show('auth')};
-async function load(){if(!session)return;try{records=await authFetch('/rest/v1/scanner_codes?select=*&order=created_at.desc&limit=1000');render()}catch(e){alert('Databáze: '+e.message)}}
+async function load(){if(!session)return;try{records=await authFetch('/rest/v1/scanner_codes?select=*&order=created_at.desc&limit=1000');render();refreshBatchHistory()}catch(e){alert('Databáze: '+e.message)}}
 const patterns=['212222','222122','222221','121223','121322','131222','122213','122312','132212','221213','221312','231212','112232','122132','122231','113222','123122','123221','223211','221132','221231','213212','223112','312131','311222','321122','321221','312212','322112','322211','212123','212321','232121','111323','131123','131321','112313','132113','132311','211313','231113','231311','112133','112331','132131','113123','113321','133121','313121','211331','231131','213113','213311','213131','311123','311321','331121','312113','312311','332111','314111','221411','431111','111224','111422','121124','121421','141122','141221','112214','112412','122114','122411','142112','142211','241211','221114','413111','241112','134111','111242','121142','121241','114212','124112','124211','411212','421112','421211','212141','214121','412121','111143','111341','131141','114113','114311','411113','411311','113141','114131','311141','411131','211412','211214','211232','2331112'];
 function barcodeSvg(code){const pairs=code.match(/../g).map(Number),seq=[105,...pairs];let sum=105;pairs.forEach((v,i)=>sum+=v*(i+1));seq.push(sum%103,106);let x=12,out='';for(const n of seq){const p=patterns[n];for(let j=0;j<p.length;j++){const w=Number(p[j])*2;if(j%2===0)out+='<rect x="'+x+'" y="8" width="'+w+'" height="78" fill="#111"/>';x+=w}}return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+(x+12)+' 115" width="'+(x+12)+'" height="115">'+out+'<text x="'+((x+12)/2)+'" y="106" text-anchor="middle" font-size="17" font-family="Arial" letter-spacing="3">'+code+'</text></svg>'}
 function draw(code){$('barcode').outerHTML=barcodeSvg(code).replace('<svg ','<svg id="barcode" ')}
@@ -38,6 +38,100 @@ async function verify(){const code=$('lookup').value.replace(/\D/g,'');$('lookup
 $('check').onclick=verify;$('lookup').oninput=e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,8);
 function stopCamera(){loop=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$('video').hidden=true;$('stop').hidden=true;$('camera').hidden=false}
 $('stop').onclick=stopCamera;$('camera').onclick=async()=>{if(!('BarcodeDetector'in window)){$('cameraInfo').textContent='Tento prohlížeč nepodporuje vestavěné čtení čárových kódů. Použij ruční zadání.';return}try{detector=new BarcodeDetector({formats:['code_128','ean_13','qr_code']});stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});$('video').srcObject=stream;$('video').hidden=false;$('stop').hidden=false;$('camera').hidden=true;loop=true;const tick=async()=>{if(!loop)return;try{const codes=await detector.detect($('video'));if(codes.length){const n=codes[0].rawValue;if(/^\d{8}$/.test(n)){$('lookup').value=n;stopCamera();await verify();return}}}catch(e){}if(loop)setTimeout(tick,350)};tick()}catch(e){$('cameraInfo').textContent='Kameru nelze spustit: '+e.message;stopCamera()}};
+
+let lastBulkBatch=null;
+function batchDefaults(type){
+  if(type==='discount')return {label:'Voucher na 10 % slevu',amount:10,amount_unit:'percent',validity_kind:'year',valid_until:'2026-12-31',note:'Voucher lze uplatnit na celý sortiment a všechny služby'};
+  return {label:'Voucher na balík odřezků',amount:null,amount_unit:null,validity_kind:'indefinite',valid_until:null,note:'Voucher platí na oba druhy odřezků. Nevztahuje se na dopravu.'};
+}
+function updateBulkSummary(){
+  const type=$('bulkType').value, n=Number($('bulkCount').value), pages=Number($('bulkLayout').value), valid=Number.isInteger(n)&&n>=1&&n<=300;
+  $('bulkPreview').src=type==='wood'?'./assets/voucher-wood.png':'./assets/voucher-discount.png';
+  $('bulkDesignNote').textContent=type==='discount'
+    ?'Původní obrázek uvádí platnost do konce roku 2026. Kódy této šablony budou mít platnost do 31. 12. 2026.'
+    :'Původní obrázek uvádí neomezenou platnost a vyloučení dopravy.';
+  $('bulkSummary').textContent=valid
+    ?n+' unikátních kódů · '+Math.ceil(n/pages)+' stran A4 · '+pages+' vouchery na stránku'
+    :'Zadej počet od 1 do 300.';
+  $('bulkCreate').disabled=!valid;
+}
+$('bulkType').onchange=updateBulkSummary;
+$('bulkCount').oninput=updateBulkSummary;
+$('bulkLayout').onchange=updateBulkSummary;
+updateBulkSummary();
+function batchGroups(){
+  const g=new Map();
+  for(const r of records){if(!r.batch_id)continue;if(!g.has(r.batch_id))g.set(r.batch_id,[]);g.get(r.batch_id).push(r)}
+  return [...g].sort((a,b)=>new Date(b[1][0].created_at)-new Date(a[1][0].created_at));
+}
+function refreshBatchHistory(){
+  const select=$('batchHistory'),prev=select.value,groups=batchGroups();
+  select.innerHTML=groups.map(([id,rows])=>'<option value="'+id+'">'+escapeHtml(({discount:'Sleva 10 %',wood:'Balík odřezků'})[rows[0].template_key]||'Kódy')+' · '+rows.length+' ks · '+new Date(rows[0].created_at).toLocaleString('cs-CZ')+'</option>').join('')||'<option value="">Žádné uložené sady</option>';
+  if(groups.some(([id])=>id===prev))select.value=prev;
+  $('batchReprint').disabled=groups.length===0;
+}
+async function createBulkBatch(){
+  const n=Number($('bulkCount').value),type=$('bulkType').value;
+  if(!Number.isInteger(n)||n<1||n>300)return alert('Povolený počet je 1 až 300.');
+  if(!session?.user?.id)return alert('Nejdříve se přihlas.');
+  const message=$('bulkMessage'),btn=$('bulkCreate'),meta=batchDefaults(type),batchId=crypto.randomUUID();
+  if(!confirm('Vygenerovat a trvale uložit '+n+' samostatných kódů do databáze?'))return;
+  btn.disabled=true;$('bulkResult').hidden=true;message.textContent='Ukládám '+n+' unikátních kódů do Evidence-app…';
+  try{
+    let saved=null;
+    for(let attempt=0;attempt<4;attempt++){
+      const known=new Set(records.map(r=>r.code)),rows=[];
+      for(let i=0;i<n;i++){
+        let code='';
+        for(let j=0;j<100;j++){code=randomCode();if(!known.has(code))break;code=''}
+        if(!code)throw Error('Nepodařilo se vytvořit unikátní kódy.');
+        known.add(code);
+        rows.push({code,owner_id:session.user.id,label:meta.label,note:meta.note,amount:meta.amount,amount_unit:meta.amount_unit,validity_kind:meta.validity_kind,valid_until:meta.valid_until,template_key:type,batch_id:batchId,barcode_svg:barcodeSvg(code)});
+      }
+      try{
+        saved=await authFetch('/rest/v1/scanner_codes',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(rows)});
+        if(!Array.isArray(saved)||saved.length!==n)throw Error('Databáze nevrátila všechny uložené kódy.');
+        break;
+      }catch(e){if(!/duplicate|unique|23505|409/i.test(e.message)||attempt===3)throw e}
+    }
+    if(!saved)throw Error('Generování selhalo.');
+    records=[...saved,...records];
+    lastBulkBatch=batchId;
+    $('bulkResultTitle').textContent='Hotovo: '+saved.length+' unikátních voucherů';
+    $('bulkResult').hidden=false;
+    message.textContent='Všechny kódy jsou uložené. Tisk lze opakovat i z uložených sad.';
+    render();refreshBatchHistory();
+    $('batchHistory').value=batchId;
+  }catch(e){message.textContent='Sadu se nepodařilo vytvořit: '+e.message}
+  finally{btn.disabled=false;updateBulkSummary()}
+}
+function openBatchForPrint(id,perPage){
+  const rows=records.filter(r=>r.batch_id===id).sort((a,b)=>a.code.localeCompare(b.code));
+  if(!rows.length)return alert('Sada už není v načtené databázi.');
+  const per=perPage===4?4:2;
+  const title='Pila Železnice – '+rows.length+' voucherů';
+  const artBase=new URL('./assets/',location.href);
+  const pages=[];
+  for(let i=0;i<rows.length;i+=per){
+    const chunk=rows.slice(i,i+per);
+    const vouchers=chunk.map(r=>{
+      const src=new URL(r.template_key==='wood'?'voucher-wood.png':'voucher-discount.png',artBase).href;
+      const svg=r.barcode_svg||barcodeSvg(r.code);
+      return '<article class="voucher"><img class="art" alt="Voucher" src="'+src+'"><div class="barcode-panel">'+svg+'</div></article>';
+    }).join('');
+    pages.push('<section class="sheet '+(per===4?'four':'two')+'">'+vouchers+'</section>');
+  }
+  const css='@page{size:A4 portrait;margin:8mm}*{box-sizing:border-box}body{margin:0;background:#edf2ed;color:#173b27;font-family:Arial,sans-serif}.toolbar{padding:16px;background:#104c29;color:white;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.toolbar button{border:0;background:#fff;color:#104c29;border-radius:9px;padding:12px 18px;font-weight:bold;cursor:pointer}.sheet{width:194mm;min-height:279mm;margin:8mm auto;background:white;display:grid;align-content:start;gap:7mm;padding:2mm;page-break-after:always;break-after:page}.sheet.two{grid-template-columns:1fr}.sheet.four{grid-template-columns:repeat(2,minmax(0,1fr));gap:7mm 4mm}.voucher{width:100%;border:1px solid #ddd;overflow:hidden;break-inside:avoid;page-break-inside:avoid;background:white}.voucher .art{display:block;width:100%;height:auto;aspect-ratio:2.5;object-fit:contain}.barcode-panel{padding:3mm 6mm 2mm;text-align:center;background:#fff;min-height:20mm}.barcode-panel svg{display:block;width:100%;height:20mm;max-width:105mm;margin:0 auto}.sheet.four .barcode-panel{padding:2mm 3mm}.sheet.four .barcode-panel svg{height:17mm;max-width:70mm}@media print{body{background:white}.toolbar{display:none}.sheet{width:100%;height:279mm;margin:0;padding:0;min-height:0;box-shadow:none}.sheet:last-child{page-break-after:auto;break-after:auto}.voucher{border:1px solid #ddd}}';
+  const win=window.open('','_blank');
+  if(!win)return alert('Pro tisk povol otevření nového okna v prohlížeči.');
+  win.document.open();
+  win.document.write('<!doctype html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escapeHtml(title)+'</title><style>'+css+'</style></head><body><div class="toolbar"><b>'+escapeHtml(title)+'</b><button onclick="window.print()">Tisknout / Uložit jako PDF</button><span>A4 · '+per+' ks na stránku</span></div>'+pages.join('')+'</body></html>');
+  win.document.close();
+}
+$('bulkCreate').onclick=createBulkBatch;
+$('bulkPrint').onclick=()=>{if(lastBulkBatch)openBatchForPrint(lastBulkBatch,Number($('bulkLayout').value))};
+$('batchReprint').onclick=()=>{const id=$('batchHistory').value;if(id)openBatchForPrint(id,Number($('bulkLayout').value))};
+
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('install').hidden=false});$('install').onclick=async()=>{if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null}};
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js');if(session){load().then(()=>show('home')).catch(()=>show('auth'))}else show('auth');
 </script></body></html>
