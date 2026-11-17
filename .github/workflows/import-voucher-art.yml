@@ -1,0 +1,27 @@
+name: Import original Canva voucher artwork
+on:
+  push:
+    paths:
+      - '.github/workflows/import-voucher-art.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import-art:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the original Canva designs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets
+          curl --fail --location --retry 3 --silent --show-error 'https://media.canva.com/v2/document-image/hash:230743793/height:282/id:DAHKehtKJ-k/type:B/width:707?brand=BADSBvvM4Zw&csig=AAAAAAAAAAAAAAAAAAAAAAMUxfOGlUosdF1TUsMII82XPBdcoZVz4lxWWrFj4FlK&exp=1794926052&fallback=https%3A%2F%2Fs3.amazonaws.com%2Fdocument-export-us1.canva.com%2FtKJ-k%2FDAHKehtKJ-k%2F3%2Fthumbnail%2F0001.png%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAQYCGKMUH545XFSWX%252F20261117%252Fus-east-1%252Fs3%252Faws4_request%26X-Amz-Date%3D20261117T055103Z%26X-Amz-Expires%3D33165%26X-Amz-Signature%3D4910b433f0337e0d915124e7255a33a23b1468cf8c16e1525e9f44c5cd7f4799%26X-Amz-SignedHeaders%3Dhost%26response-expires%3DTue%252C%252017%2520Nov%25202026%252015%253A03%253A48%2520GMT&osig=AAAAAAAAAAAAAAAAAAAAAPRNq6NkB_0xqFLlgduC0AWK8cdRDj3EucHZJrBKjCy6&page=1&signed=brand%2Cfallback%2Cpage%2Cversion&signer=document-rpc&version=3' --output assets/voucher-discount.png
+          curl --fail --location --retry 3 --silent --show-error 'https://media.canva.com/v2/document-image/hash:814551447/height:282/id:DAHKeiSak4U/type:B/width:707?brand=BADSBvvM4Zw&csig=AAAAAAAAAAAAAAAAAAAAAMjiaCCV-bSmVENvjUc7xNQH2ZXGlc-2qecLm_mzNKeS&exp=1794927969&fallback=https%3A%2F%2Fs3.amazonaws.com%2Fdocument-export-us1.canva.com%2FSak4U%2FDAHKeiSak4U%2F5%2Fthumbnail%2F0001.png%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAQYCGKMUH545XFSWX%252F20261117%252Fus-east-1%252Fs3%252Faws4_request%26X-Amz-Date%3D20261117T062211Z%26X-Amz-Expires%3D30213%26X-Amz-Signature%3D2510c3b9e8e65c038717d5034416420aacdbdb077c7744f78628ccf5875f93fb%26X-Amz-SignedHeaders%3Dhost%26response-expires%3DTue%252C%252017%2520Nov%25202026%252014%253A45%253A44%2520GMT&osig=AAAAAAAAAAAAAAAAAAAAABK-YQaky63dtzk8MHr-uKoSeUjcu2hkp7oraiX7kytg&page=1&signed=brand%2Cfallback%2Cpage%2Cversion&signer=document-rpc&version=5' --output assets/voucher-wood.png
+          file assets/voucher-*.png
+      - name: Save artwork into repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/voucher-discount.png assets/voucher-wood.png
+          git diff --cached --quiet || (git commit -m "Import exact voucher previews from Canva" && git push)
