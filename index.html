@@ -14,7 +14,7 @@
  <div class="card">
   <h2>Načtení rezervace</h2>
   <label for="treeBarcode">Čárový kód Code 128</label>
-  <input id="treeBarcode" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Načtěte fotoaparátem nebo zadejte 32 znaků">
+  <input id="treeBarcode" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Naskenujte kód nebo zadejte PZ26…">
   <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:9px">
    <button class="action" id="treeCameraStart" type="button"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="M14.8 4H9.2L7.6 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.6z"/><circle cx="12" cy="13" r="3.6"/></svg> Zapnout fotoaparát</button>
    <button class="action secondary" id="treeCameraStop" type="button" hidden>Vypnout kameru</button>
@@ -213,7 +213,7 @@ async function treeChange(change){
 }
 async function treeLookup(){
  const code=treeValue('treeBarcode').value.trim().toUpperCase();treeValue('treeBarcode').value=code;
- if(!/^[A-F0-9]{32}$/.test(code)){treeMessage('Čárový kód musí mít 32 znaků (Code 128).',true);return}
+ if(!/^(?:[A-F0-9]{32}|PZ26[A-Z0-9]{8})$/.test(code)){treeMessage('Zadejte platný čárový kód rezervace.',true);return}
  treeValue('treeResult').textContent='Dohledávám…';
  try{const data=await treeApi('lookup',{barcode:code});treeRenderReservation(data.reservation);treeMessage('Rezervace nalezena.')}catch(e){treeCurrent=null;treeValue('treeResult').textContent='';treeMessage(e.message,true)}
 }
@@ -237,7 +237,7 @@ function stopTreeCamera(){
 }
 treeValue('treeLookup').onclick=treeLookup;
 treeValue('treeRefresh').onclick=()=>loadTreeReservations();
-treeValue('treeBarcode').oninput=e=>e.target.value=e.target.value.toUpperCase().replace(/[^0-9A-F]/g,'').slice(0,32);
+treeValue('treeBarcode').oninput=e=>e.target.value=e.target.value.toUpperCase().replace(/[^0-9A-Z]/g,'').slice(0,32);
 treeValue('treeCameraStop').onclick=stopTreeCamera;
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&treeCameraLoop)stopTreeCamera()});
 window.addEventListener('pagehide',stopTreeCamera);
@@ -268,7 +268,7 @@ treeValue('treeCameraStart').onclick=async()=>{
         ctx.drawImage(video,Math.floor((640-w)/2),Math.floor((360-h)/2),w,h);
         const detected=await treeDetector.detect(treeScanCanvas);
         if(run!==treeScanRun)return;
-        const code=(detected.find(x=>/^[A-Fa-f0-9]{32}$/.test(x.rawValue))?.rawValue||'').toUpperCase();
+        const code=(detected.find(x=>/^(?:[A-Fa-f0-9]{32}|PZ26[A-Za-z0-9]{8})$/.test(x.rawValue))?.rawValue||'').toUpperCase();
         if(code){treeValue('treeBarcode').value=code;stopTreeCamera();await treeLookup();return}
       }
     }catch(error){if(run===treeScanRun)console.warn('Skenování snímku:',error?.message)}
