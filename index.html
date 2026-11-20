@@ -1,11 +1,31 @@
 <!doctype html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#104c29"><link rel="manifest" href="manifest.webmanifest"><title>Scanner kód – Generátor a čtečka</title><style>
 *{box-sizing:border-box}body{margin:0;font:15px system-ui;background:#f2f6f2;color:#173b27}header{background:#104c29;color:white;padding:16px;display:flex;align-items:center;gap:12px}header button{background:#ffffff22;border:1px solid #ffffff55;border-radius:13px;padding:9px;color:white;cursor:pointer}header strong{font-size:19px}main{max-width:850px;margin:auto;padding:20px}.card{background:white;border:1px solid #dce6dc;border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:0 4px 16px #1038200c}h2{margin:0 0 15px}label{display:block;font-weight:600;margin:12px 0 5px}input,select{width:100%;padding:12px;border:1px solid #c8d8cb;border-radius:10px;font:inherit}button.action{background:#104c29;color:white;border:0;border-radius:11px;padding:12px 17px;font:inherit;cursor:pointer;margin:6px 5px 6px 0}button.secondary{background:#e7f1e8;color:#104c29}button.danger{background:#a52828}button:disabled{opacity:.5}small,.muted{color:#687b6c}#drawer{position:fixed;inset:0;z-index:9;background:#0007;display:none}#drawer.open{display:block}nav{height:100%;width:min(310px,85vw);background:#fff;padding:24px;box-shadow:4px 0 30px #0003}nav button{display:block;width:100%;text-align:left;background:transparent;border:0;padding:15px;border-bottom:1px solid #eee;font:inherit;cursor:pointer}.page{display:none}.page.active{display:block}.tag{display:inline-block;border-radius:30px;padding:5px 12px;font-weight:700}.valid{background:#e0f6e5;color:#176d32}.used{background:#ffe5e5;color:#9e2323}.expired{background:#fff0cf;color:#895b08}.cancelled{background:#e7e7e7;color:#555}#barcode{max-width:100%;height:auto;background:transparent}.record{padding:13px;border-bottom:1px solid #e8eee9;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}video{max-width:100%;border-radius:14px;background:#12251a}#result{margin-top:12px}.topline{display:flex;align-items:center;justify-content:space-between;gap:12px} .logo{width:32px;height:32px} @media(max-width:500px){main{padding:12px}.card{padding:15px}}
 .saved-barcode{max-width:230px;margin-top:10px}.saved-barcode svg{width:100%;height:auto}.record-actions{display:flex;align-items:center;flex-wrap:wrap;gap:5px}.record-actions button{font-size:12px;padding:8px;margin:0}nav button{font-weight:550}.template-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.template-card{border:1px solid #dce6dc;border-radius:15px;overflow:hidden;background:#fff}.template-art{aspect-ratio:2.5;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:18px;color:#116a08;background:linear-gradient(125deg,#fff 65%,#107d08 65%);position:relative}.template-art strong{font-size:clamp(13px,2.5vw,23px);color:#111}.template-art small{font-size:11px;color:#176d32}.template-brand{font-size:12px;font-weight:800;letter-spacing:.1em}.template-body{padding:14px}.template-body p{margin:6px 0}.template-body .action{width:100%;margin:7px 0 0}.value-row{display:flex;gap:8px}.value-row select{max-width:100px}@media(max-width:620px){.template-grid{grid-template-columns:1fr}} .template-art{aspect-ratio:2.5!important;overflow:hidden}.template-art img{width:100%;height:100%;object-fit:contain;display:block}.recent-item{padding:12px 0;border-bottom:1px solid #e6ece7}.recent-item small{display:block;margin-top:3px}#categoryFilter,#archiveOrder{margin-bottom:8px}.template-art{padding:0!important;display:block!important;background:#fff!important;aspect-ratio:2.5!important}.template-art img{width:100%;height:100%;display:block;object-fit:contain}.bulk-preview{border:1px solid #dae5dc;border-radius:14px;overflow:hidden;margin:14px 0 5px;background:white;aspect-ratio:2.5}.bulk-preview img{width:100%;height:100%;display:block;object-fit:contain}.batch-summary{margin:15px 0;background:#f1f6f1;border-radius:11px;padding:13px;color:#104c29;font-weight:600}.batch-success{background:#eff8f0;border:1px solid #bee1c4;border-radius:13px;padding:14px;margin:14px 0}.batch-success p{color:#365e3d}#bulkMessage{min-height:1.5em}.bulk-controls{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.bulk-controls button{flex:1 1 200px}.batch-summary{line-height:1.6}.bulk-selection-toolbar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:12px;background:#f3f7f3;border:1px solid #dae5da;border-radius:13px;margin-top:15px}.bulk-selection-toolbar button{margin:0;font-size:13px;padding:9px 12px}.bulk-selection-toolbar #selectionCount{margin-right:auto;font-weight:650;color:#104c29}.selection-help{font-size:12px;margin:7px 0 12px}.record-select{display:flex;align-items:center;justify-content:center;flex:none;min-width:34px;cursor:pointer}.record-select input{width:20px;height:20px;accent-color:#104c29;cursor:pointer}.record.is-selected{background:#f1f8f0;border-radius:10px}.bulk-selection-toolbar button.danger:disabled{opacity:.45}.header-spacer{flex:1}.header-back,.header-sync{display:flex;align-items:center;gap:5px;white-space:nowrap;font-weight:650}.header-back:disabled{opacity:.4;cursor:default}.sync-symbol{font-size:23px;line-height:1}.header-sync:disabled{opacity:.5}.sync-feedback{padding:9px 16px;background:#e7f4e8;color:#104c29;border-bottom:1px solid #b3d7b8;font-size:13px;text-align:center}@media(max-width:620px){header{gap:7px;padding:11px 9px}.header-back span,.sync-label{display:none}.header-back,.header-sync{padding:9px 12px}header strong{font-size:17px}} </style></head><body><header><button id="backBtn" class="header-back" type="button" aria-label="Zpět" title="Předchozí stránka">← <span>Zpět</span></button><button id="menu" aria-label="Otevřít menu"><svg class="logo" viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="12" fill="#fff"/><path fill="#104c29" d="M13 16h3v30h-3zm6 0h6v30h-6zm9 0h2v30h-2zm5 0h5v30h-5zm8 0h2v30h-2zm5 0h6v30h-6z"/></svg></button><div><strong>Scanner kód</strong><div style="font-size:12px;opacity:.8">Pila Železnice · Čárové kódy</div></div><div class="header-spacer"></div><button id="syncBtn" class="header-sync" type="button" title="Načíst aktuální data ze Supabase"><span class="sync-symbol">⟳</span> <span class="sync-label">Synchronizovat</span></button></header><div id="syncFeedback" class="sync-feedback" role="status" aria-live="polite" hidden></div>
-<div id="drawer"><nav><div class="topline"><h2>Scanner kód</h2><button style="width:auto" id="close">✕</button></div><button data-page="home">⌂  Přehled</button><button data-page="generate">▥  Generátor</button><button data-page="scan">▣  Čtečka a kontrola</button><button data-page="records">▤  Evidence</button><button data-page="bulk">▥  Hromadný tisk</button><button data-page="settings">⚙  Nastavení</button></nav></div>
-<main><section id="auth" class="page active"><div class="card"><h2>Přihlášení k databázi</h2><p class="muted">Pro sdílené kódy na více zařízeních použij na všech zařízeních stejný účet.</p><label>E-mail</label><input id="email" type="email" autocomplete="email" placeholder="vas@email.cz"><label>Heslo</label><input id="password" type="password" autocomplete="current-password" placeholder="Minimálně 6 znaků"><button class="action" id="signin">Přihlásit se</button><button class="action secondary" id="signup">Vytvořit účet</button><p id="authMessage" class="muted"></p></div></section><section id="home" class="page active"><div class="card"><h2>Správa čárových kódů</h2><p>Generuj unikátní osmimístné čárové kódy, exportuj PNG a ověřuj, zda již byly použity.</p><button class="action" data-page="generate">+ Nový kód</button><button class="action secondary" data-page="scan">Skenovat</button><button class="action secondary" data-page="bulk">Hromadný tisk</button></div><div class="card"><h2>Rychlé šablony</h2><p class="muted">Vyber přednastavenou šablonu nebo použij univerzální generátor.</p><div class="template-grid"><article class="template-card"><div class="template-art" id="discountArt"><img src="./assets/voucher-discount.png" alt="Originální návrh Pila Železnice – voucher 10 % sleva"></div><div class="template-body"><b>Voucher na 10 % slevu</b><p class="muted">10 % · Do konce roku</p><button class="action" data-template="discount">Použít šablonu</button></div></article><article class="template-card"><div class="template-art" id="woodArt"><img src="./assets/voucher-wood.png" alt="Originální návrh Pila Železnice – voucher na balík odřezků"></div><div class="template-body"><b>Voucher na balík odřezků</b><p class="muted">Neomezená platnost</p><button class="action" data-template="wood">Použít šablonu</button></div></article></div></div><div class="card"><h2>Přehled</h2><div id="stats"></div><h3>Poslední 3 vytvořené kódy</h3><div id="recentCodes"></div></div></section>
+<div id="drawer"><nav><div class="topline"><h2>Scanner kód</h2><button style="width:auto" id="close">✕</button></div><button data-page="home">⌂  Přehled</button><button data-page="generate">▥  Generátor</button><button data-page="scan">▣  Čtečka a kontrola</button><button data-page="trees"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0"><path d="m12 3 6 7h-3l4 5h-4l3 4H6l3-4H5l4-5H6z"/><path d="M12 19v3"/></svg> Vánoční stromky</button><button data-page="records">▤  Evidence</button><button data-page="bulk">▥  Hromadný tisk</button><button data-page="settings">⚙  Nastavení</button></nav></div>
+<main><section id="auth" class="page active"><div class="card"><h2>Přihlášení k databázi</h2><p class="muted">Pro sdílené kódy na více zařízeních použij na všech zařízeních stejný účet.</p><label>E-mail</label><input id="email" type="email" autocomplete="email" placeholder="vas@email.cz"><label>Heslo</label><input id="password" type="password" autocomplete="current-password" placeholder="Minimálně 6 znaků"><button class="action" id="signin">Přihlásit se</button><button class="action secondary" id="signup">Vytvořit účet</button><p id="authMessage" class="muted"></p></div></section><section id="home" class="page active"><div class="card"><h2>Správa čárových kódů</h2><p>Generuj unikátní osmimístné čárové kódy, exportuj PNG a ověřuj, zda již byly použity.</p><button class="action" data-page="generate">+ Nový kód</button><button class="action secondary" data-page="scan">Skenovat</button><button class="action secondary" data-page="trees"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0"><path d="m12 3 6 7h-3l4 5h-4l3 4H6l3-4H5l4-5H6z"/><path d="M12 19v3"/></svg> Vánoční stromky</button><button class="action secondary" data-page="bulk">Hromadný tisk</button></div><div class="card"><h2>Rychlé šablony</h2><p class="muted">Vyber přednastavenou šablonu nebo použij univerzální generátor.</p><div class="template-grid"><article class="template-card"><div class="template-art" id="discountArt"><img src="./assets/voucher-discount.png" alt="Originální návrh Pila Železnice – voucher 10 % sleva"></div><div class="template-body"><b>Voucher na 10 % slevu</b><p class="muted">10 % · Do konce roku</p><button class="action" data-template="discount">Použít šablonu</button></div></article><article class="template-card"><div class="template-art" id="woodArt"><img src="./assets/voucher-wood.png" alt="Originální návrh Pila Železnice – voucher na balík odřezků"></div><div class="template-body"><b>Voucher na balík odřezků</b><p class="muted">Neomezená platnost</p><button class="action" data-template="wood">Použít šablonu</button></div></article></div></div><div class="card"><h2>Přehled</h2><div id="stats"></div><h3>Poslední 3 vytvořené kódy</h3><div id="recentCodes"></div></div></section>
 <section id="generate" class="page"><div class="card"><h2>Nový čárový kód</h2><p class="muted">Každý kód má vlastní číslo. Zadané informace se uloží k číslu v centrální databázi.</p><label>Typ generování</label><select id="templateType"><option value="custom">Univerzální generátor</option><option value="discount">Voucher na 10 % slevu</option><option value="wood">Voucher na balík odřezků</option></select><label>Název</label><input id="name" placeholder="Např. Vánoční akce"><div class="value-fields"><label>Hodnota</label><div class="value-row"><input id="amount" type="number" min="0" step="any" placeholder="Volitelné"><select id="amountUnit"><option value="CZK">Kč</option><option value="percent">%</option></select></div></div><label>Platnost</label><select id="validity"><option value="year">Do konce roku</option><option value="stock">Do vyprodání zásob</option><option value="indefinite">Neurčito</option></select><label>Poznámka</label><input id="note" placeholder="Volitelné"><button class="action" id="make">Vygenerovat kód</button><div id="generated" hidden><h3>Vytvořený kód: <span id="number"></span></h3><svg id="barcode" role="img" aria-label="Čárový kód"></svg><div><button class="action" id="png">Stáhnout průhledné PNG</button><button class="action secondary" id="svg">Stáhnout SVG</button></div></div></div></section>
 <section id="bulk" class="page"><div class="card"><h2>Hromadný tisk čárových kódů</h2><p class="muted">Vygeneruj sadu unikátních kódů. Na A4 se tisknou <strong>pouze kódy v rámečcích 4 × 2 cm</strong> s čarami pro snadné stříhání nebo řezání. Obrázky voucherů se do tisku nevkládají.</p><label for="bulkType">Ke které šabloně kódy patří?</label><select id="bulkType"><option value="discount">Voucher na 10 % slevu</option><option value="wood">Voucher na balík odřezků</option></select><label for="bulkCount">Počet unikátních kódů</label><input id="bulkCount" type="number" min="1" max="300" step="1" value="30"><div id="bulkSummary" class="batch-summary"></div><p class="muted" id="bulkDesignNote">Kódy ze slevové šablony mají platnost do 31. 12. 2026.</p><div class="bulk-controls"><button class="action secondary" id="bulkPreviewBtn">Náhled A4 bez ukládání</button><button class="action" id="bulkCreate">Vygenerovat a uložit sadu</button></div><p id="bulkMessage" class="muted" role="status"></p><div id="bulkResult" hidden><div class="batch-success"><strong id="bulkResultTitle"></strong><p>Všechny kódy jsou uložené. Nyní můžeš otevřít tisk nebo uložit PDF. Při opakovaném tisku se vytvořené kódy nezmění.</p><button class="action" id="bulkPrint">Otevřít tisk / Uložit PDF</button></div></div></div><div class="card"><h2>Uložené tiskové sady</h2><p class="muted">Otevři dříve vygenerovanou sadu. Nebudou vytvářeny žádné nové kódy.</p><label for="batchHistory">Vyber sadu</label><select id="batchHistory"><option value="">Žádné uložené sady</option></select><button class="action secondary" id="batchReprint" disabled>Vytisknout uloženou sadu</button></div></section>
 <section id="scan" class="page"><div class="card"><h2>Kontrola čárového kódu</h2><label>Osmimístné číslo</label><input id="lookup" inputmode="numeric" maxlength="8" placeholder="Např. 48271936"><button class="action" id="check">Ověřit</button><button class="action secondary" id="camera">Zapnout kameru</button><button class="action secondary" id="stop" hidden>Vypnout kameru</button><video id="video" autoplay playsinline hidden></video><p id="cameraInfo" class="muted"></p><div id="result"></div></div></section>
+<section id="trees" class="page">
+ <div class="card" style="border-color:#bad4c1">
+  <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap"><div><h2 style="margin:0 0 4px"><svg aria-hidden="true" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0"><path d="m12 3 6 7h-3l4 5h-4l3 4H6l3-4H5l4-5H6z"/><path d="M12 19v3"/></svg> Vánoční stromky</h2><p class="muted" style="margin:0">Rezervace 2026 · výdej pomocí fotoaparátu</p></div><span class="tag expired">Testovací rezervace</span></div>
+  <p class="muted">Výdej stromků je oddělený od poukázek. Běžně vydáme všechny rezervované kusy najednou, částečný výdej je výjimka.</p>
+ </div>
+ <div class="card">
+  <h2>Načtení rezervace</h2>
+  <label for="treeBarcode">Čárový kód Code 128</label>
+  <input id="treeBarcode" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Naskenujte kód nebo zadejte PZ26…">
+  <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:9px">
+   <button class="action" id="treeCameraStart" type="button"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="M14.8 4H9.2L7.6 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.6z"/><circle cx="12" cy="13" r="3.6"/></svg> Zapnout fotoaparát</button>
+   <button class="action secondary" id="treeCameraStop" type="button" hidden>Vypnout kameru</button>
+   <button class="action secondary" id="treeLookup" type="button">Dohledat ručně</button>
+  </div>
+  <video id="treeVideo" autoplay playsinline muted hidden style="width:100%;max-height:300px;object-fit:cover;border-radius:12px;margin-top:14px;background:#102c1b"></video>
+  <p id="treeCameraInfo" class="muted" role="status" aria-live="polite"></p>
+  <div id="treeResult" role="status" aria-live="polite"></div>
+ </div>
+ <div class="card"><div style="display:flex;align-items:center;gap:10px;justify-content:space-between"><h2 style="margin:0">Poslední rezervace</h2><button class="action secondary" type="button" id="treeRefresh"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="M20 11a8 8 0 0 0-14.2-4.9L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.2 4.9L21 15"/><path d="M21 20v-5h-5"/></svg> Obnovit</button></div><div id="treeRecent" class="muted" style="margin-top:12px">Načítání…</div></div>
+</section>
 <section id="records" class="page"><div class="card"><h2>Databáze kódů</h2><label>Kategorie šablony</label><select id="categoryFilter"><option value="all">Všechny kategorie</option><option value="custom">Univerzální generátor</option><option value="discount">Voucher na 10 % slevu</option><option value="wood">Voucher na balík odřezků</option></select><label>Řazení</label><select id="archiveOrder"><option value="newest">Nejnovější nahoře</option><option value="oldest">Nejstarší nahoře</option><option value="category">Podle kategorie</option></select><label for="batchFilter">Tisková sada</label><select id="batchFilter"><option value="all">Všechny tiskové sady i jednotlivé kódy</option></select><label>Hledat kód</label><input id="filter" placeholder="Hledat podle čísla nebo názvu"><div class="bulk-selection-toolbar"><button type="button" class="action secondary" id="selectVisible">Označit vše z filtru</button><button type="button" class="action secondary" id="clearSelection">Zrušit výběr</button><span id="selectionCount" role="status">Vybráno: 0</span><button type="button" class="action danger" id="deleteSelected" disabled>Smazat vybrané</button></div><p class="muted selection-help">Označeny budou pouze kódy odpovídající filtrům. Vybrané položky zůstanou označené i při změně filtru.</p><div id="list"></div></div></section>
 <section id="settings" class="page"><div class="card"><h2>Nastavení</h2><p>Data jsou ukládána v Supabase Evidence-app a oddělena podle přihlášeného uživatele.</p><p id="account"></p><button class="action secondary" id="signout">Odhlásit se</button><button class="action secondary" id="install" hidden>Instalovat aplikaci</button></div></section></main>
 <script>
@@ -15,7 +35,7 @@ function setTemplate(key){$('templateType').value=key;const defaults={discount:{
 document.querySelectorAll('[data-template]').forEach(b=>b.onclick=()=>setTemplate(b.dataset.template));$('templateType').onchange=e=>setTemplate(e.target.value);
 const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 let activePage='auth',menuHistoryOpen=false;
-const knownPages=new Set(['auth','home','generate','scan','records','bulk','settings']);
+const knownPages=new Set(['auth','home','generate','scan','trees','records','bulk','settings']);
 function show(id,{replace=false,fromHistory=false}={}){
   if(!knownPages.has(id))id='home';
   if(!session&&id!=='auth')id='auth';
@@ -30,10 +50,12 @@ function show(id,{replace=false,fromHistory=false}={}){
   $('drawer').classList.remove('open');menuHistoryOpen=false;
   document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id===id));
   if(id!=='scan')stopCamera();
+  if(id!=='trees')stopTreeCamera();
   $('backBtn').disabled=id==='home'||id==='auth';
   $('backBtn').hidden=id==='auth';
   $('syncBtn').hidden=id==='auth';
   render();
+  if(id==='trees')loadTreeReservations();
   window.scrollTo(0,0);
 }
 function closeMenu(){
@@ -158,6 +180,106 @@ async function verify(){const code=$('lookup').value.replace(/\D/g,'');$('lookup
 $('check').onclick=verify;$('lookup').oninput=e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,8);
 function stopCamera(){loop=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$('video').hidden=true;$('stop').hidden=true;$('camera').hidden=false}
 $('stop').onclick=stopCamera;$('camera').onclick=async()=>{if(!('BarcodeDetector'in window)){$('cameraInfo').textContent='Tento prohlížeč nepodporuje vestavěné čtení čárových kódů. Použij ruční zadání.';return}try{detector=new BarcodeDetector({formats:['code_128','ean_13','qr_code']});stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});$('video').srcObject=stream;$('video').hidden=false;$('stop').hidden=false;$('camera').hidden=true;loop=true;const tick=async()=>{if(!loop)return;try{const codes=await detector.detect($('video'));if(codes.length){const n=codes[0].rawValue;if(/^\d{8}$/.test(n)){$('lookup').value=n;stopCamera();await verify();return}}}catch(e){}if(loop)setTimeout(tick,350)};tick()}catch(e){$('cameraInfo').textContent='Kameru nelze spustit: '+e.message;stopCamera()}};
+
+/* Vánoční stromky – oddělená zabezpečená evidence, původní poukázky beze změny. */
+let treeCurrent=null,treeStream=null,treeDetector=null,treeCameraLoop=false,treeLoading=false;
+const treeTypeLabel={smrk:'Smrk',borovice:'Borovice',na_miste:'Výběr na místě'};
+const treeValue=(id)=>$(id);
+const treeStatus=r=>r.status==='cancelled'?'Zrušeno':Number(r.issued_quantity||0)>=r.quantity?'Vydáno':Number(r.issued_quantity||0)>0?'Částečně vydáno':'Čeká na výdej';
+async function treeApi(op,extra={}){if(!session?.access_token)throw Error('Přihlaste se do aplikace');return authFetch('/functions/v1/tree-scanner',{method:'POST',body:JSON.stringify({op,...extra})})}
+function treeMessage(message,isError=false){treeValue('treeCameraInfo').textContent=message;treeValue('treeCameraInfo').style.color=isError?'#9e2323':''}
+function treeRenderReservation(r){
+ treeCurrent=r;const issued=Number(r.issued_quantity||0),remaining=Math.max(0,r.quantity-issued),done=r.status==='cancelled'||remaining===0;
+ treeValue('treeResult').innerHTML='<div class="card" style="background:#f8fbf8;margin-top:14px;border-color:#c8dec9">'+
+ '<span class="tag '+(done?'valid':issued?'expired':'valid')+'">'+escapeHtml(treeStatus(r))+'</span>'+
+ '<h3 style="margin-bottom:8px">'+escapeHtml(r.public_number)+'</h3>'+
+ '<p><b>Zákazník:</b> '+escapeHtml(r.full_name)+'<br><b>Druh:</b> '+escapeHtml(treeTypeLabel[r.tree_type]||r.tree_type)+
+ '<br><b>Rezervováno:</b> '+r.quantity+' ks<br><b>Vydáno:</b> '+issued+' ks<br><b>Zbývá:</b> '+remaining+' ks</p>'+
+ (r.is_test?'<p class="muted">TEST – tento výdej neovlivňuje skutečné rezervace.</p>':'')+
+ (done?'':('<button class="action" type="button" id="treeIssueAll">✓ Vydat všechny zbývající ('+remaining+' ks)</button>'+
+ '<details style="margin-top:14px"><summary>Výjimečně vydat jen část</summary><label for="treePartialCount">Počet vydávaných stromků</label><input id="treePartialCount" type="number" min="1" max="'+remaining+'" value="1"><button class="action secondary" type="button" id="treeIssuePartial">Vydat vybraný počet</button></details>'))+
+ (issued?'<button class="action secondary" type="button" id="treeRestore">↶ Opravit poslední výdej (−1 ks)</button>':'')+
+ '<details style="margin-top:15px"><summary>Historie výdejů</summary><div id="treeHistory">Načítání…</div></details></div>';
+ const issueAll=treeValue('treeIssueAll');if(issueAll)issueAll.onclick=()=>treeChange(remaining);
+ const part=treeValue('treeIssuePartial');if(part)part.onclick=()=>{const n=Number(treeValue('treePartialCount').value);if(!Number.isInteger(n)||n<1||n>remaining){treeMessage('Zadejte počet od 1 do '+remaining,true);return}treeChange(n)};
+ const restore=treeValue('treeRestore');if(restore)restore.onclick=()=>treeChange(-1);
+ treeApi('history',{reservationId:r.id}).then(data=>{const el=treeValue('treeHistory');if(el)el.innerHTML=(data.events?.length?data.events.map(x=>'<p style="margin:7px 0">'+escapeHtml(new Date(x.created_at).toLocaleString('cs-CZ'))+' · '+(x.quantity_change>0?'Vydáno ':'Oprava ')+x.quantity_change+' ks · zůstatek '+x.quantity_after+' ks</p>').join(''):'<p>Zatím žádný výdej.</p>')}).catch(()=>{const el=treeValue('treeHistory');if(el)el.textContent='Historie není dostupná.'});
+}
+async function treeChange(change){
+ if(!treeCurrent||treeLoading)return;const remain=treeCurrent.quantity-Number(treeCurrent.issued_quantity||0);
+ if(change>remain||change< -Number(treeCurrent.issued_quantity||0))return treeMessage('Nelze vydat více než rezervované množství.',true);
+ if(!confirm(change>0?'Potvrdit vydání '+change+' ks stromků?':'Opravit vydaný počet o 1 ks?'))return;
+ treeLoading=true;try{const data=await treeApi(change>0?'issue':'restore',{reservationId:treeCurrent.id,quantity:Math.abs(change)});const r=data.result;const previous=treeCurrent;treeRenderReservation({...previous,issued_quantity:r.issued_quantity,status:r.status});treeMessage('✓ Uloženo. Vydáno '+r.issued_quantity+' z '+r.quantity+' ks.');await loadTreeReservations({quiet:true});}catch(e){treeMessage('Výdej se nepodařilo uložit: '+e.message,true)}finally{treeLoading=false}
+}
+async function treeLookup(){
+ const code=treeValue('treeBarcode').value.trim().toUpperCase();treeValue('treeBarcode').value=code;
+ if(!/^(?:[A-F0-9]{32}|PZ26[A-Z0-9]{8})$/.test(code)){treeMessage('Zadejte platný čárový kód rezervace.',true);return}
+ treeValue('treeResult').textContent='Dohledávám…';
+ try{const data=await treeApi('lookup',{barcode:code});treeRenderReservation(data.reservation);treeMessage('Rezervace nalezena.')}catch(e){treeCurrent=null;treeValue('treeResult').textContent='';treeMessage(e.message,true)}
+}
+async function loadTreeReservations({quiet=false}={}){
+ if(!session)return;
+ const target=treeValue('treeRecent');if(!quiet)target.textContent='Načítání rezervací…';
+ try{const data=await treeApi('list');
+ target.innerHTML=data.items?.length?data.items.map(r=>'<div style="padding:11px 0;border-bottom:1px solid #e7eee8"><b>'+escapeHtml(r.public_number)+'</b> · '+escapeHtml(treeTypeLabel[r.tree_type]||r.tree_type)+' · '+r.quantity+' ks<br><small>'+escapeHtml(treeStatus(r))+' · vydáno '+r.issued_quantity+'/'+r.quantity+'</small></div>').join(''):'Zatím žádné testovací rezervace.';
+ }catch(e){target.textContent='Nepodařilo se načíst rezervace: '+e.message}
+}
+// Šetrné skenování na mobilu: malý obrázek, 1 detekce za ~1 s a okamžité vypnutí při opuštění stránky.
+let treeScanTimer=null,treeScanRun=0,treeCameraStarting=false,treeScanCanvas=null;
+function stopTreeCamera(){
+ treeScanRun++;treeCameraLoop=false;treeCameraStarting=false;
+ if(treeScanTimer!==null){clearTimeout(treeScanTimer);treeScanTimer=null}
+ if(treeStream){for(const track of treeStream.getTracks())track.stop();treeStream=null}
+ const video=treeValue('treeVideo');
+ if(video){video.pause();video.srcObject=null;video.hidden=true}
+ treeValue('treeCameraStart').hidden=false;treeValue('treeCameraStart').disabled=false;
+ treeValue('treeCameraStop').hidden=true;treeDetector=null;treeScanCanvas=null;
+}
+treeValue('treeLookup').onclick=treeLookup;
+treeValue('treeRefresh').onclick=()=>loadTreeReservations();
+treeValue('treeBarcode').oninput=e=>e.target.value=e.target.value.toUpperCase().replace(/[^0-9A-Z]/g,'').slice(0,32);
+treeValue('treeCameraStop').onclick=stopTreeCamera;
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&treeCameraLoop)stopTreeCamera()});
+window.addEventListener('pagehide',stopTreeCamera);
+treeValue('treeCameraStart').onclick=async()=>{
+ if(treeCameraStarting||treeCameraLoop)return;
+ if(!navigator.mediaDevices?.getUserMedia){treeMessage('Tento prohlížeč neumožňuje přístup k fotoaparátu.',true);return}
+ if(!('BarcodeDetector'in window)){treeMessage('Vestavěné rozpoznání Code 128 není dostupné. Kód lze zadat ručně.',true);return}
+ treeCameraStarting=true;treeValue('treeCameraStart').disabled=true;
+ const run=++treeScanRun;
+ try{
+  treeDetector=new BarcodeDetector({formats:['code_128']});
+  treeStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:640},height:{ideal:480},frameRate:{ideal:15,max:20}},audio:false});
+  if(run!==treeScanRun||activePage!=='trees'){stopTreeCamera();return}
+  const video=treeValue('treeVideo');video.srcObject=treeStream;video.hidden=false;
+  await video.play();
+  if(run!==treeScanRun||activePage!=='trees'){stopTreeCamera();return}
+  treeCameraLoop=true;treeCameraStarting=false;treeValue('treeCameraStart').hidden=true;treeValue('treeCameraStop').hidden=false;
+  treeScanCanvas=document.createElement('canvas');treeScanCanvas.width=640;treeScanCanvas.height=360;
+  const ctx=treeScanCanvas.getContext('2d',{alpha:false,willReadFrequently:false});
+  treeMessage('Fotoaparát je aktivní. Namiřte jej na čárový kód.');
+  async function tick(){
+    if(!treeCameraLoop||run!==treeScanRun||document.hidden||activePage!=='trees')return;
+    try{
+      if(video.readyState>=2&&ctx){
+        const scale=Math.min(640/video.videoWidth,360/video.videoHeight,1);
+        const w=Math.max(1,Math.floor(video.videoWidth*scale)),h=Math.max(1,Math.floor(video.videoHeight*scale));
+        ctx.fillStyle='#ffffff';ctx.fillRect(0,0,640,360);
+        ctx.drawImage(video,Math.floor((640-w)/2),Math.floor((360-h)/2),w,h);
+        const detected=await treeDetector.detect(treeScanCanvas);
+        if(run!==treeScanRun)return;
+        const code=(detected.find(x=>/^(?:[A-Fa-f0-9]{32}|PZ26[A-Za-z0-9]{8})$/.test(x.rawValue))?.rawValue||'').toUpperCase();
+        if(code){treeValue('treeBarcode').value=code;stopTreeCamera();await treeLookup();return}
+      }
+    }catch(error){if(run===treeScanRun)console.warn('Skenování snímku:',error?.message)}
+    if(treeCameraLoop&&run===treeScanRun)treeScanTimer=setTimeout(tick,950);
+  }
+  treeScanTimer=setTimeout(tick,650);
+ }catch(error){
+   treeMessage('Fotoaparát nelze spustit: '+error.message,true);
+   stopTreeCamera();
+ }
+};
 
 let lastBulkBatch=null;
 function batchDefaults(type){
