@@ -7,20 +7,33 @@
 #treeReservationClose{position:sticky;top:0;float:right;z-index:2;width:43px;height:43px;border-radius:50%;background:#e7f1e8;color:#104c29;border:0;font-size:25px;font-weight:700;cursor:pointer}
 #treeReservationPanel #treeResult>.card{margin:3px 0 0;box-shadow:none;border:0;padding:6px}
 @media(max-width:500px){#treeReservationModal{padding:8px}#treeReservationPanel{max-height:calc(100dvh - 16px);border-radius:17px;padding:14px}}
+/* Styly pouze pro sekci vánočních stromků. */
+#trees .tree-list-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;padding:12px 13px;border:1px solid #dbe8de;border-radius:12px;margin:8px 0;background:#fbfdfb;align-items:center}
+#trees .tree-list-title{font-size:14px;font-weight:750;overflow-wrap:anywhere;color:#153e27}
+#trees .tree-list-sub{font-size:13px;color:#536b58;margin-top:4px}
+#trees .tree-list-count{font-size:15px;font-weight:800;color:#104c29;white-space:nowrap;text-align:right}
+#trees .tree-list-status{font-size:11px;color:#657b69;font-weight:500;display:block;margin-top:3px}
+#trees .tree-issued-card{background:#f0f5f1;border:1px solid #b9d0bd}
+#trees #treeIssuedList .tree-list-row{background:#e8efe9;border-color:#d0dfd3}
+#trees .tree-issued-count{font-size:13px;background:#dce9df;padding:4px 10px;border-radius:30px;margin-left:6px}
+#treeReservationPanel .tree-detail-summary{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}
+#treeReservationPanel .tree-detail-field{border:1px solid #d9e6dc;border-radius:11px;background:white;padding:11px;min-width:0}
+#treeReservationPanel .tree-detail-field span{display:block;color:#667c6b;font-size:11px;margin-bottom:6px;font-weight:700}
+#treeReservationPanel .tree-detail-field strong{display:block;color:#173e27;overflow-wrap:anywhere}
+#treeReservationPanel .tree-detail-field.full{grid-column:1/-1}
+#treeReservationPanel .tree-detail-note{white-space:pre-wrap;overflow-wrap:anywhere;font-weight:500!important}
+#treeReservationPanel .tree-issue-check{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid #a2caaa;border-radius:12px;background:#e6f3e8;font-weight:700;cursor:pointer}
+#treeReservationPanel .tree-issue-check input{width:20px;height:20px;margin:0;flex:0 0 auto}
+@media(max-width:480px){#treeReservationPanel .tree-detail-summary{grid-template-columns:1fr}}
 </style></head><body><header><button id="backBtn" class="header-back" type="button" aria-label="Zpět" title="Předchozí stránka">← <span>Zpět</span></button><button id="menu" aria-label="Otevřít menu"><svg class="logo" viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="12" fill="#fff"/><path fill="#104c29" d="M13 16h3v30h-3zm6 0h6v30h-6zm9 0h2v30h-2zm5 0h5v30h-5zm8 0h2v30h-2zm5 0h6v30h-6z"/></svg></button><div><strong>Scanner kód</strong><div style="font-size:12px;opacity:.8">Pila Železnice · Čárové kódy</div></div><div class="header-spacer"></div><button id="syncBtn" class="header-sync" type="button" title="Načíst aktuální data ze Supabase"><span class="sync-symbol">⟳</span> <span class="sync-label">Synchronizovat</span></button></header><div id="syncFeedback" class="sync-feedback" role="status" aria-live="polite" hidden></div>
 <div id="drawer"><nav><div class="topline"><h2>Scanner kód</h2><button style="width:auto" id="close">✕</button></div><button data-page="home">⌂  Přehled</button><button data-page="generate">▥  Generátor</button><button data-page="scan">▣  Čtečka a kontrola</button><button data-page="trees"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0"><path d="m12 3 6 7h-3l4 5h-4l3 4H6l3-4H5l4-5H6z"/><path d="M12 19v3"/></svg> Vánoční stromky</button><button data-page="records">▤  Evidence</button><button data-page="bulk">▥  Hromadný tisk</button><button data-page="settings">⚙  Nastavení</button></nav></div>
 <main><section id="auth" class="page active"><div class="card"><h2>Přihlášení k databázi</h2><p class="muted">Pro sdílené kódy na více zařízeních použij na všech zařízeních stejný účet.</p><label>E-mail</label><input id="email" type="email" autocomplete="email" placeholder="vas@email.cz"><label>Heslo</label><input id="password" type="password" autocomplete="current-password" placeholder="Minimálně 6 znaků"><button class="action" id="signin">Přihlásit se</button><button class="action secondary" id="signup">Vytvořit účet</button><p id="authMessage" class="muted"></p></div></section><section id="home" class="page active"><div class="card"><h2>Správa čárových kódů</h2><p>Generuj unikátní osmimístné čárové kódy, exportuj PNG a ověřuj, zda již byly použity.</p><button class="action" data-page="generate">+ Nový kód</button><button class="action secondary" data-page="scan">Skenovat</button><button class="action secondary" data-page="trees"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0"><path d="m12 3 6 7h-3l4 5h-4l3 4H6l3-4H5l4-5H6z"/><path d="M12 19v3"/></svg> Vánoční stromky</button><button class="action secondary" data-page="bulk">Hromadný tisk</button></div><div class="card"><h2>Rychlé šablony</h2><p class="muted">Vyber přednastavenou šablonu nebo použij univerzální generátor.</p><div class="template-grid"><article class="template-card"><div class="template-art" id="discountArt"><img src="./assets/voucher-discount.png" alt="Originální návrh Pila Železnice – voucher 10 % sleva"></div><div class="template-body"><b>Voucher na 10 % slevu</b><p class="muted">10 % · Do konce roku</p><button class="action" data-template="discount">Použít šablonu</button></div></article><article class="template-card"><div class="template-art" id="woodArt"><img src="./assets/voucher-wood.png" alt="Originální návrh Pila Železnice – voucher na balík odřezků"></div><div class="template-body"><b>Voucher na balík odřezků</b><p class="muted">Neomezená platnost</p><button class="action" data-template="wood">Použít šablonu</button></div></article></div></div><div class="card"><h2>Přehled</h2><div id="stats"></div><h3>Poslední 3 vytvořené kódy</h3><div id="recentCodes"></div></div></section>
 <section id="generate" class="page"><div class="card"><h2>Nový čárový kód</h2><p class="muted">Každý kód má vlastní číslo. Zadané informace se uloží k číslu v centrální databázi.</p><label>Typ generování</label><select id="templateType"><option value="custom">Univerzální generátor</option><option value="discount">Voucher na 10 % slevu</option><option value="wood">Voucher na balík odřezků</option></select><label>Název</label><input id="name" placeholder="Např. Vánoční akce"><div class="value-fields"><label>Hodnota</label><div class="value-row"><input id="amount" type="number" min="0" step="any" placeholder="Volitelné"><select id="amountUnit"><option value="CZK">Kč</option><option value="percent">%</option></select></div></div><label>Platnost</label><select id="validity"><option value="year">Do konce roku</option><option value="stock">Do vyprodání zásob</option><option value="indefinite">Neurčito</option></select><label>Poznámka</label><input id="note" placeholder="Volitelné"><button class="action" id="make">Vygenerovat kód</button><div id="generated" hidden><h3>Vytvořený kód: <span id="number"></span></h3><svg id="barcode" role="img" aria-label="Čárový kód"></svg><div><button class="action" id="png">Stáhnout průhledné PNG</button><button class="action secondary" id="svg">Stáhnout SVG</button></div></div></div></section>
 <section id="bulk" class="page"><div class="card"><h2>Hromadný tisk čárových kódů</h2><p class="muted">Vygeneruj sadu unikátních kódů. Na A4 se tisknou <strong>pouze kódy v rámečcích 4 × 2 cm</strong> s čarami pro snadné stříhání nebo řezání. Obrázky voucherů se do tisku nevkládají.</p><label for="bulkType">Ke které šabloně kódy patří?</label><select id="bulkType"><option value="discount">Voucher na 10 % slevu</option><option value="wood">Voucher na balík odřezků</option></select><label for="bulkCount">Počet unikátních kódů</label><input id="bulkCount" type="number" min="1" max="300" step="1" value="30"><div id="bulkSummary" class="batch-summary"></div><p class="muted" id="bulkDesignNote">Kódy ze slevové šablony mají platnost do 31. 12. 2026.</p><div class="bulk-controls"><button class="action secondary" id="bulkPreviewBtn">Náhled A4 bez ukládání</button><button class="action" id="bulkCreate">Vygenerovat a uložit sadu</button></div><p id="bulkMessage" class="muted" role="status"></p><div id="bulkResult" hidden><div class="batch-success"><strong id="bulkResultTitle"></strong><p>Všechny kódy jsou uložené. Nyní můžeš otevřít tisk nebo uložit PDF. Při opakovaném tisku se vytvořené kódy nezmění.</p><button class="action" id="bulkPrint">Otevřít tisk / Uložit PDF</button></div></div></div><div class="card"><h2>Uložené tiskové sady</h2><p class="muted">Otevři dříve vygenerovanou sadu. Nebudou vytvářeny žádné nové kódy.</p><label for="batchHistory">Vyber sadu</label><select id="batchHistory"><option value="">Žádné uložené sady</option></select><button class="action secondary" id="batchReprint" disabled>Vytisknout uloženou sadu</button></div></section>
 <section id="scan" class="page"><div class="card"><h2>Kontrola čárového kódu</h2><label>Osmimístné číslo</label><input id="lookup" inputmode="numeric" maxlength="8" placeholder="Např. 48271936"><button class="action" id="check">Ověřit</button><button class="action secondary" id="camera">Zapnout kameru</button><button class="action secondary" id="stop" hidden>Vypnout kameru</button><video id="video" autoplay playsinline hidden></video><p id="cameraInfo" class="muted"></p><div id="result"></div></div></section>
-<section id="trees" class="page">
- <div class="card" style="border-color:#bad4c1">
-  <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap"><div><h2 style="margin:0 0 4px"><svg aria-hidden="true" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0"><path d="m12 3 6 7h-3l4 5h-4l3 4H6l3-4H5l4-5H6z"/><path d="M12 19v3"/></svg> Vánoční stromky</h2><p class="muted" style="margin:0">Rezervace 2026 · výdej pomocí fotoaparátu</p></div><span class="tag expired">Testovací rezervace</span></div>
-  <p class="muted">Výdej stromků je oddělený od poukázek. Běžně vydáme všechny rezervované kusy najednou, částečný výdej je výjimka.</p>
- </div>
+<section id="trees" class="page"><div class="card" style="border-color:#bad4c1"><h2 style="margin:0;display:flex;gap:9px;align-items:center;flex-wrap:wrap"><svg aria-hidden="true" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0"><path d="m12 3 6 7h-3l4 5h-4l3 4H6l3-4H5l4-5H6z"/><path d="M12 19v3"/></svg> Vánoční stromky – Rezervace 2026</h2></div>
  <div class="card">
   <h2>Načtení rezervace</h2>
-  <label for="treeBarcode">Čárový kód rezervace</label>
   <input id="treeBarcode" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Naskenujte kód nebo zadejte PZ26…">
   <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:9px">
    <button class="action" id="treeCameraStart" type="button"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="M14.8 4H9.2L7.6 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.6z"/><circle cx="12" cy="13" r="3.6"/></svg> Zapnout fotoaparát</button>
@@ -30,7 +43,8 @@
   <video id="treeVideo" autoplay playsinline muted hidden style="width:100%;max-height:300px;object-fit:cover;border-radius:12px;margin-top:14px;background:#102c1b"></video>
   <p id="treeCameraInfo" class="muted" role="status" aria-live="polite"></p>
  </div>
- <div class="card"><div style="display:flex;align-items:center;gap:10px;justify-content:space-between"><h2 style="margin:0">Poslední rezervace</h2><button class="action secondary" type="button" id="treeRefresh"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="M20 11a8 8 0 0 0-14.2-4.9L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.2 4.9L21 15"/><path d="M21 20v-5h-5"/></svg> Obnovit</button></div><div id="treeRecent" class="muted" style="margin-top:12px">Načítání…</div></div>
+ <div class="card"><div style="display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap"><h2 style="margin:0">Rezervace</h2><button class="action secondary" type="button" id="treeRefresh"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="M20 11a8 8 0 0 0-14.2-4.9L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.2 4.9L21 15"/><path d="M21 20v-5h-5"/></svg> Obnovit</button></div><p class="muted" style="margin:8px 0 12px;font-size:13px">Rezervované stromky čekající na vyzvednutí.</p><div id="treeRecent" aria-live="polite">Načítání…</div></div>
+ <div class="card tree-issued-card"><details id="treeIssuedDropdown"><summary style="cursor:pointer;font-size:21px;font-weight:750;color:#104c29;padding:2px 0">Vydáno <span id="treeIssuedCount" class="tree-issued-count">0</span></summary><p class="muted" style="font-size:13px">Všechny vydané stromky včetně částečných výdejů.</p><div id="treeIssuedList">Zatím nic vydáno.</div></details></div>
 </section>
 <div id="treeReservationModal" role="dialog" aria-modal="true" aria-label="Detail rezervace stromků" hidden>
  <div id="treeReservationPanel" tabindex="-1">
@@ -217,19 +231,28 @@ function closeTreeReservationModal(){
 treeValue('treeReservationClose').onclick=closeTreeReservationModal;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!treeValue('treeReservationModal').hidden){e.preventDefault();closeTreeReservationModal()}});
 function treeRenderReservation(r){
- treeCurrent=r;const issued=Number(r.issued_quantity||0),remaining=Math.max(0,r.quantity-issued),done=r.status==='cancelled'||remaining===0;
- treeValue('treeResult').innerHTML='<div class="card" style="background:#f8fbf8;margin-top:14px;border-color:#c8dec9">'+
+ treeCurrent=r;
+ const issued=Number(r.issued_quantity||0),remaining=Math.max(0,r.quantity-issued);
+ const done=r.status==='cancelled'||remaining===0;
+ const detail=(label,value,full=false,extra='')=>'<div class="tree-detail-field'+(full?' full':'')+'"><span>'+label+'</span><strong class="'+extra+'">'+escapeHtml(String(value??''))+'</strong></div>';
+ treeValue('treeResult').innerHTML='<div class="card" style="background:#f8fbf8;margin-top:8px;border-color:#c8dec9">'+
  '<span class="tag '+(done?'valid':issued?'expired':'valid')+'">'+escapeHtml(treeStatus(r))+'</span>'+
- '<h3 style="margin-bottom:8px">'+escapeHtml(r.public_number)+'</h3>'+
- '<p><b>Zákazník:</b> '+escapeHtml(r.full_name)+'<br><b>Druh:</b> '+escapeHtml(treeTypeLabel[r.tree_type]||r.tree_type)+
- '<br><b>Rezervováno:</b> '+r.quantity+' ks<br><b>Vydáno:</b> '+issued+' ks<br><b>Zbývá:</b> '+remaining+' ks</p>'+
+ '<h3 style="margin:14px 0 5px;overflow-wrap:anywhere">'+escapeHtml(r.public_number)+'</h3>'+
+ '<div class="tree-detail-summary">'+
+ detail('JMÉNO A PŘÍJMENÍ',r.full_name,true)+
+ detail('DRUH STROMKU',treeTypeLabel[r.tree_type]||r.tree_type)+
+ detail('REZERVOVÁNO',r.quantity+' ks')+
+ detail('VYDÁNO',issued+' ks')+
+ detail('ZBÝVÁ VYZVEDNOUT',remaining+' ks')+
+ detail('POZNÁMKA',r.note||'Bez poznámky',true,'tree-detail-note')+
+ '</div>'+
  (r.is_test?'<p class="muted">TEST – tento výdej neovlivňuje skutečné rezervace.</p>':'')+
- (done?'':('<button class="action" type="button" id="treeIssueAll">✓ Vydat všechny zbývající ('+remaining+' ks)</button>'+
- '<details style="margin-top:14px"><summary>Výjimečně vydat jen část</summary><label for="treePartialCount">Počet vydávaných stromků</label><input id="treePartialCount" type="number" min="1" max="'+remaining+'" value="1"><button class="action secondary" type="button" id="treeIssuePartial">Vydat vybraný počet</button></details>'))+
+ (done?'':('<label class="tree-issue-check" for="treeIssueAll"><input type="checkbox" id="treeIssueAll"> Vydáno – všech '+remaining+' zbývajících ks</label>'+
+ '<details style="margin-top:14px"><summary style="cursor:pointer;font-weight:650">Vydat část</summary><label for="treePartialCount">Počet vydávaných stromků</label><input id="treePartialCount" type="number" min="1" max="'+remaining+'" value="1"><button class="action secondary" type="button" id="treeIssuePartial">Potvrdit částečný výdej</button></details>'))+
  (issued?'<button class="action secondary" type="button" id="treeRestore">↶ Opravit poslední výdej (−1 ks)</button>':'')+
  '<details style="margin-top:15px"><summary>Historie výdejů</summary><div id="treeHistory">Načítání…</div></details></div>';
  openTreeReservationModal();
- const issueAll=treeValue('treeIssueAll');if(issueAll)issueAll.onclick=()=>treeChange(remaining);
+ const all=treeValue('treeIssueAll');if(all)all.onchange=()=>{if(all.checked)treeChange(remaining).finally(()=>{if(all.isConnected&&!treeLoading)all.checked=false})};
  const part=treeValue('treeIssuePartial');if(part)part.onclick=()=>{const n=Number(treeValue('treePartialCount').value);if(!Number.isInteger(n)||n<1||n>remaining){treeMessage('Zadejte počet od 1 do '+remaining,true);return}treeChange(n)};
  const restore=treeValue('treeRestore');if(restore)restore.onclick=()=>treeChange(-1);
  treeApi('history',{reservationId:r.id}).then(data=>{const el=treeValue('treeHistory');if(el)el.innerHTML=(data.events?.length?data.events.map(x=>'<p style="margin:7px 0">'+escapeHtml(new Date(x.created_at).toLocaleString('cs-CZ'))+' · '+(x.quantity_change>0?'Vydáno ':'Oprava ')+x.quantity_change+' ks · zůstatek '+x.quantity_after+' ks</p>').join(''):'<p>Zatím žádný výdej.</p>')}).catch(()=>{const el=treeValue('treeHistory');if(el)el.textContent='Historie není dostupná.'});
@@ -246,12 +269,33 @@ async function treeLookup(){
  treeMessage('Dohledávám rezervaci…');
  try{const data=await treeApi('lookup',{barcode:code});treeRenderReservation(data.reservation);treeMessage('✓ Rezervace nalezena.')}catch(e){closeTreeReservationModal();treeMessage(e.message,true)}
 }
+let treeListRequest=0;
 async function loadTreeReservations({quiet=false}={}){
  if(!session)return;
- const target=treeValue('treeRecent');if(!quiet)target.textContent='Načítání rezervací…';
- try{const data=await treeApi('list');
- target.innerHTML=data.items?.length?data.items.map(r=>'<div style="padding:11px 0;border-bottom:1px solid #e7eee8"><b>'+escapeHtml(r.public_number)+'</b> · '+escapeHtml(treeTypeLabel[r.tree_type]||r.tree_type)+' · '+r.quantity+' ks<br><small>'+escapeHtml(treeStatus(r))+' · vydáno '+r.issued_quantity+'/'+r.quantity+'</small></div>').join(''):'Zatím žádné testovací rezervace.';
- }catch(e){target.textContent='Nepodařilo se načíst rezervace: '+e.message}
+ const request=++treeListRequest,open=treeValue('treeIssuedDropdown').open;
+ const target=treeValue('treeRecent'),issuedTarget=treeValue('treeIssuedList');
+ if(!quiet)target.textContent='Načítání rezervací…';
+ try{
+  const rows=[];let offset=0;
+  for(let page=0;page<1000;page++){
+   const result=await treeApi('list',{offset});
+   if(request!==treeListRequest)return;
+   const items=Array.isArray(result.items)?result.items:[];
+   rows.push(...items);
+   if(result.nextOffset===null||result.nextOffset===undefined)break;
+   if(!items.length||result.nextOffset<=offset)throw Error('Nepodařilo se dokončit načítání rezervací.');
+   offset=result.nextOffset;
+   if(page===999)throw Error('Seznam je příliš dlouhý. Obnovte načtení.');
+  }
+  if(request!==treeListRequest)return;
+  const entry=(r,count,label)=>'<div class="tree-list-row"><div><div class="tree-list-title">'+escapeHtml(r.public_number)+'</div><div class="tree-list-sub">'+escapeHtml(treeTypeLabel[r.tree_type]||r.tree_type)+'</div></div><div class="tree-list-count">'+count+' ks<span class="tree-list-status">'+label+'</span></div></div>';
+  const pending=rows.filter(r=>r.status==='cancelled'||Math.max(0,r.quantity-Number(r.issued_quantity||0))>0);
+  const issued=rows.filter(r=>r.status!=='cancelled'&&Number(r.issued_quantity||0)>0);
+  target.innerHTML=pending.length?pending.map(r=>entry(r,r.status==='cancelled'?r.quantity:Math.max(0,r.quantity-Number(r.issued_quantity||0)),r.status==='cancelled'?'Zrušeno':Number(r.issued_quantity||0)>0?'Zbývá vyzvednout':'Čeká na výdej')).join(''):'Žádné čekající rezervace.';
+  issuedTarget.innerHTML=issued.length?issued.map(r=>entry(r,Number(r.issued_quantity||0),Number(r.issued_quantity||0)>=r.quantity?'Vydáno celé':'Vydáno částečně')).join(''):'Zatím nic vydáno.';
+  treeValue('treeIssuedCount').textContent=issued.length;
+  treeValue('treeIssuedDropdown').open=open;
+ }catch(e){if(request===treeListRequest){target.textContent='Nepodařilo se načíst rezervace: '+e.message;issuedTarget.textContent='Seznam vydaných není dostupný.'}}
 }
 // Stromková čtečka používá stejně jako poukázky jediný BarcodeDetector.
 let treeScanRun=0,treeCameraStarting=false,treeScanTimer=null,treeScanFailures=0;
