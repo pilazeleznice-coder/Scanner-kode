@@ -253,87 +253,53 @@ async function loadTreeReservations({quiet=false}={}){
  target.innerHTML=data.items?.length?data.items.map(r=>'<div style="padding:11px 0;border-bottom:1px solid #e7eee8"><b>'+escapeHtml(r.public_number)+'</b> · '+escapeHtml(treeTypeLabel[r.tree_type]||r.tree_type)+' · '+r.quantity+' ks<br><small>'+escapeHtml(treeStatus(r))+' · vydáno '+r.issued_quantity+'/'+r.quantity+'</small></div>').join(''):'Zatím žádné testovací rezervace.';
  }catch(e){target.textContent='Nepodařilo se načíst rezervace: '+e.message}
 }
-// Robustnější čtení čárových kódů z jiného telefonu: ZXing má přednost,
-// vestavěný skener zůstává zálohou. Původní skenování poukázek se nemění.
-let treeScanTimer=null,treeScanRun=0,treeCameraStarting=false,treeZxingReader=null;
-let treeZxingScriptPromise=null,treeScanAttempts=0,treeZxingWatchdog=null;
-const treeValidCode=value=>/^(?:[A-F0-9]{32}|PZ26[A-Z0-9]{8})$/.test(String(value||'').trim().toUpperCase());
+// Stromková čtečka používá stejně jako poukázky jediný BarcodeDetector.
+let treeScanRun=0,treeCameraStarting=false,treeScanTimer=null,treeScanFailures=0;
+const treeValidCode=v=>/^(?:[A-F0-9]{32}|PZ26[A-Z0-9]{8})$/.test(String(v||'').trim().toUpperCase());
 function stopTreeCamera(){
  treeScanRun++;treeCameraLoop=false;treeCameraStarting=false;
  if(treeScanTimer!==null){clearTimeout(treeScanTimer);treeScanTimer=null}
- if(treeZxingWatchdog!==null){clearTimeout(treeZxingWatchdog);treeZxingWatchdog=null}
- if(treeZxingReader){try{treeZxingReader.reset()}catch(err){}treeZxingReader=null}
- if(treeStream){for(const track of treeStream.getTracks())track.stop();treeStream=null}
+ if(treeStream){treeStream.getTracks().forEach(track=>track.stop());treeStream=null}
  const video=treeValue('treeVideo');
- if(video){try{video.pause()}catch(err){}video.srcObject=null;video.hidden=true}
+ video.pause();video.srcObject=null;video.hidden=true;
  treeValue('treeCameraStart').hidden=false;treeValue('treeCameraStart').disabled=false;
  treeValue('treeCameraStop').hidden=true;treeDetector=null;
 }
-function loadTreeZxing(){
- if(window.ZXing?.BrowserMultiFormatReader)return Promise.resolve(true);
- if(treeZxingScriptPromise)return treeZxingScriptPromise;
- // CDN sometimes hangs without triggering either onload or onerror on mobile.
- // The bounded loader always resolves and never leaves the camera stuck.
- treeZxingScriptPromise=new Promise(resolve=>{
-  const script=document.createElement('script');
-  let finished=false;
-  const finish=ok=>{
-   if(finished)return;
-   finished=true;
-   clearTimeout(deadline);
-   script.onload=null;script.onerror=null;
-   if(!ok&&script.parentNode)script.remove();
-   resolve(Boolean(ok&&window.ZXing?.BrowserMultiFormatReader));
-  };
-  const deadline=setTimeout(()=>finish(false),5000);
-  script.src='https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
-  script.async=true;script.crossOrigin='anonymous';
-  script.onload=()=>finish(true);
-  script.onerror=()=>finish(false);
-  document.head.appendChild(script);
- }).catch(()=>false).then(ok=>{
-  if(!ok)treeZxingScriptPromise=null; // allow retry after a transient network failure
-  return ok;
- });
- return treeZxingScriptPromise;
-}
 async function treeCodeFound(raw,run){
  const code=String(raw||'').trim().toUpperCase();
- if(!treeValidCode(code)||!treeCameraLoop||run!==treeScanRun)return;
+ if(!treeValidCode(code)||run!==treeScanRun||!treeCameraLoop)return;
  treeValue('treeBarcode').value=code;
  stopTreeCamera();
- treeMessage('✓ Kód načten. Otevírám rezervaci…');
+ treeMessage('✓ Kód načten. Dohledávám rezervaci…');
  if(navigator.vibrate)try{navigator.vibrate(70)}catch(e){}
  await treeLookup();
 }
-function runTreeNativeFallback(video,run){
- if(run!==treeScanRun||!treeCameraLoop)return;
- // Do not detach the camera while switching decoding engines.
- if(!treeStream?.getVideoTracks().some(track=>track.readyState==='live')||video.srcObject!==treeStream){
-  treeMessage('Přenos z fotoaparátu byl přerušen. Zastavte a znovu spusťte kameru.',true);
-  return;
- }
- if(!('BarcodeDetector' in window)){
-  treeMessage('Čtečku se nepodařilo načíst. Zadejte prosím kód ručně.',true);stopTreeCamera();return;
- }
- try{treeDetector=new BarcodeDetector({formats:['code_128']})}catch(err){
-  treeMessage('Rozpoznávání kódu není dostupné. Použijte ruční zadání.',true);stopTreeCamera();return;
- }
- treeMessage('Fotoaparát je aktivní. Držte kód vodorovně uprostřed obrazu.');
- async function tick(){
-  if(!treeCameraLoop||run!==treeScanRun||document.hidden||activePage!=='trees')return;
+function treeStartDetection(video,run){
+ treeMessage('Skenuji čárový kód. Držte jej vodorovně, celý v obraze a bez odlesků.');
+ const tick=async()=>{
+  treeScanTimer=null;
+  if(run!==treeScanRun||!treeCameraLoop||activePage!=='trees'||document.hidden)return;
   try{
+   if(!treeStream||treeStream.getVideoTracks()[0]?.readyState!=='live'||video.srcObject!==treeStream)
+    throw Error('Přenos z fotoaparátu se zastavil');
    if(video.readyState>=2){
-    // Nepřevzorkovávat do malého obrázku: úzké čárky se tím ztrácely.
     const results=await treeDetector.detect(video);
-    if(run!==treeScanRun)return;
-    const found=(results||[]).find(x=>treeValidCode(x.rawValue));
-    if(found){await treeCodeFound(found.rawValue,run);return}
+    if(run!==treeScanRun||!treeCameraLoop)return;
+    treeScanFailures=0;
+    const match=(results||[]).find(item=>treeValidCode(item.rawValue));
+    if(match){await treeCodeFound(match.rawValue,run);return}
    }
-  }catch(err){if(treeScanAttempts++%15===0)console.warn('Native scanner:',err?.message)}
-  if(treeCameraLoop&&run===treeScanRun)treeScanTimer=setTimeout(tick,650);
- }
- treeScanTimer=setTimeout(tick,200);
+  }catch(err){
+   if(run!==treeScanRun||!treeCameraLoop)return;
+   if(++treeScanFailures>=5){
+    stopTreeCamera();
+    treeMessage('Čtečka selhala: '+(err?.message||'Neznámá chyba')+'. Použijte ruční zadání.',true);
+    return;
+   }
+  }
+  if(run===treeScanRun&&treeCameraLoop)treeScanTimer=setTimeout(tick,350);
+ };
+ treeScanTimer=setTimeout(tick,150);
 }
 treeValue('treeLookup').onclick=treeLookup;
 treeValue('treeRefresh').onclick=()=>loadTreeReservations();
@@ -344,69 +310,30 @@ window.addEventListener('pagehide',stopTreeCamera);
 treeValue('treeCameraStart').onclick=async()=>{
  if(treeCameraStarting||treeCameraLoop)return;
  if(!navigator.mediaDevices?.getUserMedia){treeMessage('Prohlížeč neumožňuje přístup k fotoaparátu.',true);return}
+ if(!('BarcodeDetector' in window)){treeMessage('Tento prohlížeč nepodporuje čtení čárových kódů. Zadejte kód ručně.',true);return}
  treeCameraStarting=true;treeValue('treeCameraStart').disabled=true;
- const run=++treeScanRun;treeScanAttempts=0;
+ const run=++treeScanRun;treeScanFailures=0;
  try{
-  // Kamera ve vyšším rozlišení, aby z displeje jiného telefonu zůstaly čáry ostré.
+  if(typeof BarcodeDetector.getSupportedFormats==='function'){
+   const formats=await BarcodeDetector.getSupportedFormats();
+   if(!formats.includes('code_128'))throw Error('Formát čárového kódu není podporován');
+  }
+  treeDetector=new BarcodeDetector({formats:['code_128']});
   treeStream=await navigator.mediaDevices.getUserMedia({
-   video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720},frameRate:{ideal:15,max:24}},audio:false
+   video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false
   });
   if(run!==treeScanRun||activePage!=='trees'){stopTreeCamera();return}
-  const video=treeValue('treeVideo');video.srcObject=treeStream;video.hidden=false;
-  await video.play();
+  const video=treeValue('treeVideo');
+  video.srcObject=treeStream;video.hidden=false;await video.play();
   if(run!==treeScanRun||activePage!=='trees'){stopTreeCamera();return}
-  treeCameraLoop=true;treeCameraStarting=false;
+  treeCameraStarting=false;treeCameraLoop=true;
   treeValue('treeCameraStart').hidden=true;treeValue('treeCameraStop').hidden=false;
-  treeMessage('Připravuji rozpoznávání čárového kódu…');
-  const loaded=await loadTreeZxing();
-  if(run!==treeScanRun||!treeCameraLoop)return;
-  if(loaded){
-   try{
-    const hints=new Map();
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[ZXing.BarcodeFormat.CODE_128]);
-    hints.set(ZXing.DecodeHintType.TRY_HARDER,true);
-    treeZxingReader=new ZXing.BrowserMultiFormatReader(hints,650);
-    let callbackCount=0;
-    // A continuous decoder is deliberately NOT awaited here: some versions
-    // resolve its promise only when decoding stops, which hid the active state.
-    treeMessage('Skenuji čárový kód. Kód držte rovně a bez odlesků.');
-    const task=treeZxingReader.decodeFromVideoElementContinuously(video,(result,error)=>{
-     if(!treeCameraLoop||run!==treeScanRun)return;
-     callbackCount++;
-     if(result&&treeValidCode(result.getText()))void treeCodeFound(result.getText(),run);
-    });
-    Promise.resolve(task).catch(err=>{
-     if(run!==treeScanRun||!treeCameraLoop)return;
-     console.warn('ZXing decoder stopped:',err?.message);
-     if(treeZxingWatchdog!==null){clearTimeout(treeZxingWatchdog);treeZxingWatchdog=null}
-     if(treeZxingReader){try{treeZxingReader.stopContinuousDecode()}catch(e){}treeZxingReader=null}
-     treeMessage('Přepínám na záložní čtečku…');
-     runTreeNativeFallback(video,run);
-    });
-    // If the decoder never starts processing any frames, automatically switch.
-    treeZxingWatchdog=setTimeout(()=>{
-     treeZxingWatchdog=null;
-     if(run!==treeScanRun||!treeCameraLoop||callbackCount>0)return;
-     console.warn('ZXing decoder did not start: switching to native scan');
-     if(treeZxingReader){try{treeZxingReader.stopContinuousDecode()}catch(e){}treeZxingReader=null}
-     treeMessage('Hlavní čtečka nereagovala. Spouštím záložní rozpoznávání…');
-     runTreeNativeFallback(video,run);
-    },8000);
-    return;
-   }catch(err){
-    console.warn('ZXing initialization failed:',err?.message);
-    if(treeZxingReader){try{treeZxingReader.stopContinuousDecode()}catch(e){}treeZxingReader=null}
-    if(run!==treeScanRun)return;
-   }
-  }
-  treeMessage('Hlavní čtečku se nepodařilo načíst. Spouštím záložní rozpoznávání…');
-  runTreeNativeFallback(video,run);
+  treeStartDetection(video,run);
  }catch(err){
-  treeMessage('Fotoaparát se nepodařilo spustit: '+(err?.message||'Neznámá chyba'),true);
   stopTreeCamera();
+  treeMessage('Skenování nelze spustit: '+(err?.message||'Neznámá chyba')+'. Kód lze zadat ručně.',true);
  }
 };
-
 let lastBulkBatch=null;
 function batchDefaults(type){
   if(type==='discount')return {label:'Voucher na 10 % slevu',amount:10,amount_unit:'percent',validity_kind:'year',valid_until:'2026-12-31',note:'Voucher lze uplatnit na celý sortiment a všechny služby'};
