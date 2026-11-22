@@ -278,6 +278,12 @@ async function treeCodeFound(raw,run){
  await treeLookup();
 }
 function runTreeNativeFallback(video,run){
+ if(run!==treeScanRun||!treeCameraLoop)return;
+ // Do not detach the camera while switching decoding engines.
+ if(!treeStream?.getVideoTracks().some(track=>track.readyState==='live')||video.srcObject!==treeStream){
+  treeMessage('Přenos z fotoaparátu byl přerušen. Zastavte a znovu spusťte kameru.',true);
+  return;
+ }
  if(!('BarcodeDetector' in window)){
   treeMessage('Čtečku se nepodařilo načíst. Zadejte prosím kód ručně.',true);stopTreeCamera();return;
  }
@@ -344,7 +350,7 @@ treeValue('treeCameraStart').onclick=async()=>{
      if(run!==treeScanRun||!treeCameraLoop)return;
      console.warn('ZXing decoder stopped:',err?.message);
      if(treeZxingWatchdog!==null){clearTimeout(treeZxingWatchdog);treeZxingWatchdog=null}
-     if(treeZxingReader){try{treeZxingReader.reset()}catch(e){}treeZxingReader=null}
+     if(treeZxingReader){try{treeZxingReader.stopContinuousDecode()}catch(e){}treeZxingReader=null}
      treeMessage('Přepínám na záložní čtečku…');
      runTreeNativeFallback(video,run);
     });
@@ -353,14 +359,14 @@ treeValue('treeCameraStart').onclick=async()=>{
      treeZxingWatchdog=null;
      if(run!==treeScanRun||!treeCameraLoop||callbackCount>0)return;
      console.warn('ZXing decoder did not start: switching to native scan');
-     if(treeZxingReader){try{treeZxingReader.reset()}catch(e){}treeZxingReader=null}
+     if(treeZxingReader){try{treeZxingReader.stopContinuousDecode()}catch(e){}treeZxingReader=null}
      treeMessage('Hlavní čtečka nereagovala. Spouštím záložní rozpoznávání…');
      runTreeNativeFallback(video,run);
     },8000);
     return;
    }catch(err){
     console.warn('ZXing initialization failed:',err?.message);
-    if(treeZxingReader){try{treeZxingReader.reset()}catch(e){}treeZxingReader=null}
+    if(treeZxingReader){try{treeZxingReader.stopContinuousDecode()}catch(e){}treeZxingReader=null}
     if(run!==treeScanRun)return;
    }
   }
