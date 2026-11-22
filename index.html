@@ -331,7 +331,7 @@ function runTreeNativeFallback(video,run){
     if(found){await treeCodeFound(found.rawValue,run);return}
    }
   }catch(err){if(treeScanAttempts++%15===0)console.warn('Native scanner:',err?.message)}
-  if(treeCameraLoop&&run===treeScanRun)treeScanTimer=setTimeout(tick,260);
+  if(treeCameraLoop&&run===treeScanRun)treeScanTimer=setTimeout(tick,650);
  }
  treeScanTimer=setTimeout(tick,200);
 }
@@ -365,7 +365,7 @@ treeValue('treeCameraStart').onclick=async()=>{
     const hints=new Map();
     hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[ZXing.BarcodeFormat.CODE_128]);
     hints.set(ZXing.DecodeHintType.TRY_HARDER,true);
-    treeZxingReader=new ZXing.BrowserMultiFormatReader(hints,200);
+    treeZxingReader=new ZXing.BrowserMultiFormatReader(hints,650);
     let callbackCount=0;
     // A continuous decoder is deliberately NOT awaited here: some versions
     // resolve its promise only when decoding stops, which hid the active state.
