@@ -227,11 +227,12 @@ async function loadTreeReservations({quiet=false}={}){
 // Robustnější čtení čárových kódů z jiného telefonu: ZXing má přednost,
 // vestavěný skener zůstává zálohou. Původní skenování poukázek se nemění.
 let treeScanTimer=null,treeScanRun=0,treeCameraStarting=false,treeZxingReader=null;
-let treeZxingScriptPromise=null,treeScanAttempts=0;
+let treeZxingScriptPromise=null,treeScanAttempts=0,treeZxingWatchdog=null;
 const treeValidCode=value=>/^(?:[A-F0-9]{32}|PZ26[A-Z0-9]{8})$/.test(String(value||'').trim().toUpperCase());
 function stopTreeCamera(){
  treeScanRun++;treeCameraLoop=false;treeCameraStarting=false;
  if(treeScanTimer!==null){clearTimeout(treeScanTimer);treeScanTimer=null}
+ if(treeZxingWatchdog!==null){clearTimeout(treeZxingWatchdog);treeZxingWatchdog=null}
  if(treeZxingReader){try{treeZxingReader.reset()}catch(err){}treeZxingReader=null}
  if(treeStream){for(const track of treeStream.getTracks())track.stop();treeStream=null}
  const video=treeValue('treeVideo');
@@ -242,14 +243,29 @@ function stopTreeCamera(){
 function loadTreeZxing(){
  if(window.ZXing?.BrowserMultiFormatReader)return Promise.resolve(true);
  if(treeZxingScriptPromise)return treeZxingScriptPromise;
+ // CDN sometimes hangs without triggering either onload or onerror on mobile.
+ // The bounded loader always resolves and never leaves the camera stuck.
  treeZxingScriptPromise=new Promise(resolve=>{
   const script=document.createElement('script');
+  let finished=false;
+  const finish=ok=>{
+   if(finished)return;
+   finished=true;
+   clearTimeout(deadline);
+   script.onload=null;script.onerror=null;
+   if(!ok&&script.parentNode)script.remove();
+   resolve(Boolean(ok&&window.ZXing?.BrowserMultiFormatReader));
+  };
+  const deadline=setTimeout(()=>finish(false),5000);
   script.src='https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
   script.async=true;script.crossOrigin='anonymous';
-  script.onload=()=>resolve(Boolean(window.ZXing?.BrowserMultiFormatReader));
-  script.onerror=()=>resolve(false);
+  script.onload=()=>finish(true);
+  script.onerror=()=>finish(false);
   document.head.appendChild(script);
- }).catch(()=>false);
+ }).catch(()=>false).then(ok=>{
+  if(!ok)treeZxingScriptPromise=null; // allow retry after a transient network failure
+  return ok;
+ });
  return treeZxingScriptPromise;
 }
 async function treeCodeFound(raw,run){
@@ -306,7 +322,7 @@ treeValue('treeCameraStart').onclick=async()=>{
   if(run!==treeScanRun||activePage!=='trees'){stopTreeCamera();return}
   treeCameraLoop=true;treeCameraStarting=false;
   treeValue('treeCameraStart').hidden=true;treeValue('treeCameraStop').hidden=false;
-  treeMessage('Fotoaparát je aktivní. Namiřte na čárový kód a chvíli podržte.');
+  treeMessage('Připravuji rozpoznávání čárového kódu…');
   const loaded=await loadTreeZxing();
   if(run!==treeScanRun||!treeCameraLoop)return;
   if(loaded){
@@ -315,19 +331,40 @@ treeValue('treeCameraStart').onclick=async()=>{
     hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[ZXing.BarcodeFormat.CODE_128]);
     hints.set(ZXing.DecodeHintType.TRY_HARDER,true);
     treeZxingReader=new ZXing.BrowserMultiFormatReader(hints,650);
-    // Skener průběžně zkouší každý snímek a sám řeší ostření a změny kontrastu.
-    await treeZxingReader.decodeFromVideoElementContinuously(video,(result,error)=>{
-     if(!treeCameraLoop||run!==treeScanRun||!result)return;
-     if(treeValidCode(result.getText()))treeCodeFound(result.getText(),run);
-    });
+    let callbackCount=0;
+    // A continuous decoder is deliberately NOT awaited here: some versions
+    // resolve its promise only when decoding stops, which hid the active state.
     treeMessage('Skenuji čárový kód. Kód držte rovně a bez odlesků.');
+    const task=treeZxingReader.decodeFromVideoElementContinuously(video,(result,error)=>{
+     if(!treeCameraLoop||run!==treeScanRun)return;
+     callbackCount++;
+     if(result&&treeValidCode(result.getText()))void treeCodeFound(result.getText(),run);
+    });
+    Promise.resolve(task).catch(err=>{
+     if(run!==treeScanRun||!treeCameraLoop)return;
+     console.warn('ZXing decoder stopped:',err?.message);
+     if(treeZxingWatchdog!==null){clearTimeout(treeZxingWatchdog);treeZxingWatchdog=null}
+     if(treeZxingReader){try{treeZxingReader.reset()}catch(e){}treeZxingReader=null}
+     treeMessage('Přepínám na záložní čtečku…');
+     runTreeNativeFallback(video,run);
+    });
+    // If the decoder never starts processing any frames, automatically switch.
+    treeZxingWatchdog=setTimeout(()=>{
+     treeZxingWatchdog=null;
+     if(run!==treeScanRun||!treeCameraLoop||callbackCount>0)return;
+     console.warn('ZXing decoder did not start: switching to native scan');
+     if(treeZxingReader){try{treeZxingReader.reset()}catch(e){}treeZxingReader=null}
+     treeMessage('Hlavní čtečka nereagovala. Spouštím záložní rozpoznávání…');
+     runTreeNativeFallback(video,run);
+    },8000);
     return;
    }catch(err){
-    console.warn('ZXing unavailable, using native reader:',err?.message);
+    console.warn('ZXing initialization failed:',err?.message);
     if(treeZxingReader){try{treeZxingReader.reset()}catch(e){}treeZxingReader=null}
     if(run!==treeScanRun)return;
    }
   }
+  treeMessage('Hlavní čtečku se nepodařilo načíst. Spouštím záložní rozpoznávání…');
   runTreeNativeFallback(video,run);
  }catch(err){
   treeMessage('Fotoaparát se nepodařilo spustit: '+(err?.message||'Neznámá chyba'),true);
