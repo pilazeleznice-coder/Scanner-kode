@@ -286,11 +286,11 @@ async function loadTreeReservations({quiet=false}={}){
    if(page===999)throw Error('Seznam je příliš dlouhý. Obnovte načtení.');
   }
   if(request!==treeListRequest)return;
-  const entry=(r,count,label)=>'<div class="tree-list-row"><div><div class="tree-list-title">'+escapeHtml((r.full_name||'').trim().split(/\s+/).pop()||r.public_number)+'</div><div class="tree-list-sub">'+escapeHtml(r.public_number)+'</div><div class="tree-list-sub">'+escapeHtml(treeTypeLabel[r.tree_type]||r.tree_type)+'</div></div><div class="tree-list-count">'+count+' ks<span class="tree-list-status">'+label+'</span></div></div>';
+  const entry=(r,label)=>'<div class="tree-list-row"><div><div class="tree-list-title">'+escapeHtml((r.full_name||'').trim().split(/\s+/).pop()||r.public_number)+'</div><div class="tree-list-sub">'+escapeHtml(r.public_number)+'</div><div class="tree-list-sub">'+escapeHtml(treeTypeLabel[r.tree_type]||r.tree_type)+'</div></div><div class="tree-list-count">'+'Vydáno '+Number(r.issued_quantity||0)+'/'+r.quantity+'<span class="tree-list-status">'+label+'</span></div></div>';
   const pending=rows.filter(r=>r.status!=='cancelled'&&Math.max(0,r.quantity-Number(r.issued_quantity||0))>0);
-  const issued=rows.filter(r=>r.status!=='cancelled'&&Number(r.issued_quantity||0)>0);
-  target.innerHTML=pending.length?pending.map(r=>entry(r,Math.max(0,r.quantity-Number(r.issued_quantity||0)),Number(r.issued_quantity||0)>0?'Zbývá vyzvednout':'Čeká na výdej')).join(''):'Žádné čekající rezervace.';
-  issuedTarget.innerHTML=issued.length?issued.map(r=>entry(r,Number(r.issued_quantity||0),Number(r.issued_quantity||0)>=r.quantity?'Vydáno celé':'Vydáno částečně')).join(''):'Zatím nic vydáno.';
+  const issued=rows.filter(r=>r.status!=='cancelled'&&Number(r.issued_quantity||0)>=Number(r.quantity));
+  target.innerHTML=pending.length?pending.map(r=>entry(r,'Zbývá '+(r.quantity-Number(r.issued_quantity||0))+' ks')).join(''):'Žádné čekající rezervace.';
+  issuedTarget.innerHTML=issued.length?issued.map(r=>entry(r,'Vydáno celé')).join(''):'Zatím nic vydáno.';
   treeValue('treeIssuedCount').textContent=issued.length;
   treeValue('treeIssuedDropdown').open=open;
  }catch(e){if(request===treeListRequest){target.textContent='Nepodařilo se načíst rezervace: '+e.message;issuedTarget.textContent='Seznam vydaných není dostupný.'}}
