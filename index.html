@@ -239,7 +239,7 @@ function treeSpecies(r){
 }
 function treeRenderReservation(r){
  treeCurrent=r;
- const rows=treeSpecies(r),issued=Number(r.issued_quantity||0),remaining=r.quantity-issued,blocked=r.status==='cancelled'||!r.is_test;
+ const rows=treeSpecies(r),issued=Number(r.issued_quantity||0),remaining=r.quantity-issued,blocked=r.status==='cancelled'||r.is_test;
  const root=treeValue('treeResult'),name=escapeHtml(r.full_name||''),code=escapeHtml(r.public_number),num=r.reservation_number?escapeHtml(String(r.reservation_number))+'. ':'';
  const icon=k=>'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">'+(k==='smrk'?'<path d="m12 2-5 7h3l-6 8h7v5h2v-5h7l-6-8h3z"/>':k==='borovice'?'<path d="M10 21h4M12 15v6M7 16c-3 0-4-2-3-4 .4-1 1.3-1.8 2.5-2C5.5 7 8 5 10 5c1-3 5-3 6 0 3 0 4.5 2.5 3.5 5 2.5 1 3 4 .5 5.5-2 1-4 .5-5.5-.5-2 1.5-5 1.5-7.5 1Z"/>':'<path d="M12 3a7 7 0 0 0-7 7c0 5 7 11 7 11s7-6 7-11a7 7 0 0 0-7-7Z"/><circle cx="12" cy="10" r="2"/>')+'</svg>';
  function show(mode='',pick={}){
